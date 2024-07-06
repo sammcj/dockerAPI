@@ -1,0 +1,10 @@
+*.log
+.vscode/
+*.tmp
+dockerapi
+dockerAPI
+.env
+.dockerapi.env
+dist/
+**/*.zip
+vendor/

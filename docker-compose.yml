@@ -1,0 +1,120 @@
+# Example docker-compose file for dockerAPI
+services:
+  dockerapi:
+    build:
+      context: https://github.com/sammcj/dockerAPI#main
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" # If you don't use Traefik
+    # volumes:
+    #   - /your/docker-compose-files:/mnt/docker-compose-files # If you want to use docker-compose
+    #   - /var/run/docker.sock:/var/run/docker.sock # If you want to use a socket connection - WARNING: This is less secure
+    env_file:
+      - .dockerapi.env # Copy .dockerapi.env.example to this and add AUTH_TOKEN=your_auth_token
+    command: [
+      "--auth-token", "$AUTH_TOKEN",
+      "--allow-restart",
+      "--allow-stop",
+      "--allow-start",
+      "--allow-remove",
+      "--allow-pull",
+      "--allow-compose",
+      # "--compose-path", "/mnt/docker-compose-files/", # If you want to use docker-compose
+      "--log-level", "info"
+    ]
+    environment:
+      - DOCKER_HOST=tcp://dockerproxy:2375 # for a tcp connection
+      # - DOCKER_HOST=unix:///var/run/docker.sock # for a socket connection
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+    - no-new-privileges=true
+    depends_on:
+      - dockerproxy
+    networks:
+      - docker-proxynet
+      - default # If you don't use Traefik
+      # - traefik-network # If you use Traefik
+
+# If you use Traefik, you can add something like this:
+#    labels:
+#      traefik.enable: true
+#      traefik.http.routers.dockerapi.rule: Host(`dockerapi.your.domain`)
+#      traefik.http.routers.dockerapi.tls.certresolver: le
+#      traefik.http.routers.dockerapi.entrypoints: websecure
+#      traefik.http.routers.dockerapi.tls.domains[0].main: "*.your.domain"
+#      traefik.http.routers.dockerapi.service: dockerapi-service
+#      traefik.http.services.dockerapi-service.loadbalancer.server.port: 8080
+#      traefik.http.routers.dockerapi.middlewares: authentik # If you use Authentik
+
+
+  ################################################################
+  ### Docker Proxy to securely expose docker.sock to dockerAPI ###
+  dockerproxy: # see https://github.com/Tecnativa/docker-socket-proxy
+    environment:
+      - TZ=Australia/Melbourne
+      - LOG_LEVEL=warning # debug,info,notice,warning,err,crit,alert,emerg
+      - ENABLE_IPV6=false
+      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
+      # 0 to revoke access.
+      # 1 to grant access.
+      - ALLOW_RESTARTS=1
+      - ALLOW_START=1
+      - ALLOW_STOP=1
+      ## Granted by Default
+      - EVENTS=1
+      - PING=1
+      - VERSION=1
+      ## Revoked by Default
+      # Security critical
+      - AUTH=0
+      - SECRETS=0
+      - POST=1
+      # Not always needed
+      - BUILD=0
+      - COMMIT=0
+      - CONFIGS=0
+      - CONTAINERS=1
+      - DISTRIBUTION=0
+      - EXEC=0 # Disabled, but this might be useful if adding exec capabilities to dockerAPI in the future
+      - IMAGES=1
+      - INFO=1
+      - NETWORKS=0
+      - NODES=0
+      - PLUGINS=1 # for docker compose support
+      - SERVICES=1
+      - SESSION=0
+      - SWARM=0
+      - SYSTEM=0
+      - TASKS=0
+      - VOLUMES=0
+    container_name: dockerproxy
+    hostname: dockerproxy
+    restart: unless-stopped
+    image: ghcr.io/tecnativa/docker-socket-proxy:edge
+    build:
+      context: https://github.com/Tecnativa/docker-socket-proxy#master
+      dockerfile: Dockerfile
+    privileged: true # Required to access the docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/server-state:/var/lib/haproxy/server-state:rw
+    networks:
+      docker-proxynet:
+        aliases:
+          - dockerproxy
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "2375:2375"
+    healthcheck:
+      test: wget -q "http://localhost:2375/version" -O /dev/null || exit 1
+      interval: "29s"
+      timeout: "5s"
+      retries: 5
+      start_period: "10s"
