@@ -282,6 +282,7 @@ docker-compose up -d
 
 - Use HTTPS in production to secure API communications.
 - Limit access to the Docker socket and DockerAPI.
+  - You can use a docker socket proxy such as [Tecnativa/docker-socket-proxy](https://github.com/Tecnativa/docker-socket-proxy) to restrict access to the Docker socket and expose a secure API to DockerAPI.
 - Regularly update dependencies and the base image.
 - Use the principle of least privilege when configuring allowed operations.
 
