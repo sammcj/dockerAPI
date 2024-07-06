@@ -2,6 +2,22 @@
 
 DockerAPI is a lightweight HTTP API for managing Docker containers and images, with optional support for Docker Compose profiles.
 
+- [DockerAPI](#dockerapi)
+  - [Features](#features)
+  - [Requirements](#requirements)
+  - [Installation](#installation)
+    - [go install](#go-install)
+    - [From Binary](#from-binary)
+  - [Usage](#usage)
+    - [Running the API](#running-the-api)
+      - [Flags](#flags)
+    - [API Endpoints](#api-endpoints)
+    - [Example API Requests](#example-api-requests)
+  - [Docker Deployment](#docker-deployment)
+  - [Security Considerations](#security-considerations)
+  - [Contributing](#contributing)
+  - [License](#license)
+
 ## Features
 
 - Container operations: restart, stop, start, remove
