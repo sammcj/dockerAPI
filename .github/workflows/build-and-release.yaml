@@ -76,7 +76,7 @@ jobs:
       - uses: robherley/go-test-action@d5d3f9915dc4e07e84312edb08bfd4fba4a73f2c # v0
 
       - name: Upload artefacts
-        uses: actions/upload-artifact@604373da6381bf24206979c74d06a550515601b9 # v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         if: ${{ startsWith(github.ref, 'refs/heads/main') && !contains(github.event.head_commit.message, '[skip ci]') && ! contains(github.event.pull_request.title, '[skip ci]') }}
         with:
           name: dockerapi
