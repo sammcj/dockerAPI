@@ -1,6 +1,6 @@
 module github.com/sammcj/dockerapi
 
-go 1.22.8
+go 1.22.9
 
 require (
 	github.com/docker/docker v27.0.3+incompatible
