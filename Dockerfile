@@ -1,5 +1,5 @@
 # Start from the official Golang image
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # Install git and Docker client
 RUN apk add --no-cache git docker-cli
